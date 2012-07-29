@@ -10,10 +10,9 @@
 #include <fat/fat.h>
 #include <xenos/xenos.h>
 
-extern void xenos_init();
+extern void xenos_init(int videomode);
 extern void console_init();
 extern void usb_init();
-extern void do_edram_foo(struct XenosDevice *xe, int complete);
 extern void xenon_sound_init(void);
 extern void xenon_sound_submit(void *data, int len);
 extern int xenon_sound_get_free(void);

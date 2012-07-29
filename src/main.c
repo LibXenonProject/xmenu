@@ -5,21 +5,25 @@
 #include <SDL/SDL.h>
 #include <input/input.h>
 #include <xenos/xe.h>
+#include <xenos/xenos.h>
 #include <newlib/dirent.h>
+#include <diskio/ata.h>
+#include <elf/elf.h>
 
 #include "fctSdl.h"
 #include "font.h"
 #include "video.h"
 #include "bitmap/bitmap.h"
 #include "common.h"
-
-extern int exec( char *filename );
+#include "mount.h"
 
 #define MAXDEPTH 16
 #define MAXDIRNUM 1024
 #define MAXPATH 0x108
 #define BUFSIZE 65536
 #define MAXDIRSHOW 8
+
+static int handle = 0;
 
 struct xdirent
 {
@@ -244,12 +248,27 @@ void handleInput()
 			Get_DirList( now_path );
 		}
 	}
+	if( pad.x )
+	{
+		handle = get_devices(handle, now_path);
+		now_depth = 0;
+		//dlist_start  = cbuf_start[now_depth];
+		//dlist_curpos = cbuf_curpos[now_depth];
+		Get_DirList( now_path );
+	}
+	if ( pad.logo )
+	{
+		return_to_xell = 1;
+		load = 1;
+		stop = 1;
+	}
 	mdelay(80);
 }
 
 void menu( void )
 {
-	strcpy( now_path, "uda:" );
+	handle = get_devices(handle, now_path);
+	//strcpy( now_path, "sda1:" );
 	usb_do_poll();
 	Get_DirList( now_path );
 	dlist_curpos = 0;
@@ -280,15 +299,19 @@ void menu( void )
 int main(void)
 {
 	//init
-	extern void xenos_init();
-	xenos_init();
+	xenos_init(VIDEO_MODE_AUTO);
 	console_init();
 
 	xenon_thread_startup();
 
-	kmem_init();
 	usb_init();
 	usb_do_poll();
+	
+	xenon_ata_init();
+	xenon_atapi_init();
+	
+	mount_all_devices();
+	findDevices();
 
 	initSDLScreen();
 	initScreen(1280,720);
@@ -297,6 +320,7 @@ int main(void)
 
 	stop = 0;
 	load = 0;
+	return_to_xell = 0;
 	*progress = 0;
 
 	while (xenon_run_thread_task(2, ((unsigned char*)memalign(256, 128*1024)) + 127*1024, (void*)menu));
@@ -308,9 +332,12 @@ int main(void)
 		mdelay(50);
 //		network_poll();
 	}
+	
+	if (return_to_xell)
+		return 0;
 
 
-	exec( target );
+	elf_runFromDisk( target );
 
 	return 0;
 }

@@ -22,8 +22,6 @@ SOURCES		:=	src src/include src/bitmap src/sdl src/lwip/core src/lwip/core/ipv4 
 INCLUDES	:=	src src/include src/bitmap src/sdl src/lwip/include src/lwip/include/ipv4 src/lwip/arch/xenon/include/arch src/lwip/arch/xenon/include
 BUILD_DATE	:=	`date +%Y%m%d`
 
-LDSCRIPT	=	../src/app.lds
-
 #---------------------------------------------------------------------------------
 # options for code generation
 #---------------------------------------------------------------------------------
@@ -37,7 +35,7 @@ LDFLAGS		=	-g $(MACHDEP) -Wl,-Map,$(notdir $@).map -lSDL
 # any extra libraries we wish to link with the project
 #---------------------------------------------------------------------------------
 
-LIBS = -lm -lxenon 
+LIBS = -lm -lxenon -lxtaf -lntfs -lext2fs -lfat 
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
@@ -104,7 +102,6 @@ $(BUILD):
 	@[ -d $@ ] || mkdir -p $@
 	@[ -d $(TARGETDIR) ] || mkdir -p $(TARGETDIR)
 	@make --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
-	cp $(OUTPUT).elf32 /tftpboot/xenon
 
 #---------------------------------------------------------------------------------
 clean:
@@ -119,9 +116,6 @@ source/xenon/ffs_content.c: genffs.py data/ps.psu data/vs.vsu
 	python genffs.py > source/xenon/ffs_content.c
 
 run: $(OUTPUT).elf32
-	cp $(OUTPUT).elf32 /tftpboot/tftpboot/xenon
-#	cp $(OUTPUT).elf32 g:/xenon.elf
-#	cp $(OUTPUT).elf32 h:/xenon.elf
 distro:clean $(BUILD)
 	@echo $(BUILD_DATE)
 	@echo making distribuable binaries

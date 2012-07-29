@@ -16,7 +16,7 @@ void initScreen(int width,int height)
 		/* initialize the GPU */
 	Xe_Init(xe);
 
-	
+	edram_init(xe);
 
 		/* create a render target (the framebuffer) */
 	fb = Xe_GetFramebufferSurface(xe);
@@ -80,7 +80,8 @@ void initScreen(int width,int height)
 	/* stats */
 	printf("render..\n");
 	
-	do_edram_foo(xe, 1);
+	//do_edram_foo(xe, 1);
+	//edram_init(xe);
 
 	extern void edram_p4(int *res);
 
